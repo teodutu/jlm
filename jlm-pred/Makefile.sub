@@ -1,0 +1,25 @@
+# Copyright 2019 Nico Reißmann <nico.reissmann@gmail.com>
+# See COPYING for terms of redistribution.
+
+JLMPRINT_SRC = \
+	jlm-pred/jlm-pred.cpp \
+ 
+.PHONY: jlm-pred-debug
+jlm-pred-debug: CXXFLAGS += -g -DJIVE_DEBUG -DJLM_DEBUG -DJLM_ENABLE_ASSERTS
+jlm-pred-debug: $(JLM_BUILD)/libjive.a $(JLM_BUILD)/libjlm.a $(JLM_BIN)/jlm-pred
+
+.PHONY: jlm-pred-release
+jlm-pred-release: CXXFLAGS += -O3
+jlm-pred-release: $(JLM_BUILD)/libjive.a $(JLM_BUILD)/libjlm.a $(JLM_BIN)/jlm-pred
+
+$(JLM_BIN)/jlm-pred: CPPFLAGS += -I$(JLM_ROOT)/libjlm/include -I$(JLM_ROOT)/libjive/include -I$(shell $(LLVMCONFIG) --includedir)
+$(JLM_BIN)/jlm-pred: CXXFLAGS += --std=c++17 -Wall -Wpedantic -Wextra -Wno-unused-parameter -Wfatal-errors
+$(JLM_BIN)/jlm-pred: LDFLAGS+=$(shell $(LLVMCONFIG) --libs core irReader) $(shell $(LLVMCONFIG) --ldflags) $(shell $(LLVMCONFIG) --system-libs) -L$(JLM_BUILD)/ -ljlm -ljive
+$(JLM_BIN)/jlm-pred: $(patsubst %.cpp, $(JLM_BUILD)/%.o, $(JLMPRINT_SRC)) $(JLM_BUILD)/libjive.a $(JLM_BUILD)/libjlm.a
+	@mkdir -p $(JLM_BIN)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ $^ $(LDFLAGS)
+
+.PHONY: jlmpred-clean
+jlmpred-clean:
+	@rm -rf $(JLM_BUILD)/jlm-pred
+	@rm -rf $(JLM_BIN)/jlm-pred
