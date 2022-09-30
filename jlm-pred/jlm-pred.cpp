@@ -67,6 +67,29 @@ parse_cmdflags(int argc, char ** argv, cmdflags & flags)
 	}
 }
 
+static void
+get_predications_node(
+	const jive::node * node)
+{
+	std::cout << "operation = " << node->operation().debug_string() << '\n';
+
+	std::cout << "inputs = \n";
+	for (size_t n = 0; n < node->ninputs(); n++)
+		std::cout << '\t' << node->input(n)->debug_string() << '\n';
+
+	std::cout << "outputs = \n";
+	for (size_t n = 0; n < node->noutputs(); n++)
+		std::cout << '\t' << node->output(n)->debug_string() << '\n';
+}
+
+static void
+get_predications(
+	const jive::region * region)
+{
+	for (const auto & node : region->nodes)
+		get_predications_node(&node);
+}
+
 int
 main (int argc, char ** argv)
 {
@@ -87,6 +110,7 @@ main (int argc, char ** argv)
 	auto jm = jlm::ConvertLlvmModule(*lm);
 	auto rvsdgModule = jlm::ConvertInterProceduralGraphModule(*jm, flags.sd);
 	jive::view(rvsdgModule->Rvsdg().root(), stdout);
+	// get_predications(rvsdgModule->Rvsdg().root());
 
 	return 0;
 }
